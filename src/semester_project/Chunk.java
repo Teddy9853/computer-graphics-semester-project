@@ -1,6 +1,13 @@
 
 package semester_project;
 
+/**
+ *
+ * @author Victor, Tai Ji Chen
+ * GROUP: 404 Bug Not Found
+ * CS4450 Spring 2026
+ */
+
 import java.nio.FloatBuffer;
 import java.util.Random;
 import org.lwjgl.BufferUtils;
@@ -50,7 +57,9 @@ public class Chunk {
         int seed = new Random().nextInt();
         NoiseGenerate noise = new NoiseGenerate(32, 0.5, seed);
 
-        int[][] heights = noise.generateChunkHeights(0, 0, 2, 12);
+        int minHeight = 2;
+        int maxHeight = 12;
+        int[][] heights = noise.generateChunkHeights(0, 0, minHeight, maxHeight);
 
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
@@ -71,13 +80,17 @@ public class Chunk {
                     if (y == 0) {
                         block = new Block(Block.BlockType.BlockType_Bedrock);
                     } else if (y == height) {
-                        block = (height <= WATER_LEVEL)
-                                ? new Block(Block.BlockType.BlockType_Sand)
-                                : new Block(Block.BlockType.BlockType_Grass);
-                    } else if (y >= height - 2) {
-                        block = new Block(Block.BlockType.BlockType_Dirt);
+                        if (height <= WATER_LEVEL) {
+                            block = new Block(Block.BlockType.BlockType_Sand);
+                        } else {
+                            block = new Block(Block.BlockType.BlockType_Grass);
+                        }
                     } else {
-                        block = new Block(Block.BlockType.BlockType_Stone);
+                        if (y >= height - 2) {
+                            block = new Block(Block.BlockType.BlockType_Dirt);
+                        } else {
+                            block = new Block(Block.BlockType.BlockType_Stone);
+                        }
                     }
 
                     block.setActive(true);
@@ -265,14 +278,14 @@ public class Chunk {
         int sc = 0, sr = 0;
 
         switch (block.GetID()) {
-            case 0: // Grass: top = green cotton
+            case 0: // Grass
                 tc = 2; tr = 9;
                 bc = 2; br = 0;
                 sc = 3; sr = 0;
                 break;
 
             case 1: // Sand
-                tc = bc = sc = 1;
+                tc = bc = sc = 2;
                 tr = br = sr = 1;
                 break;
 

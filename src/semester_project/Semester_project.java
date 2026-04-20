@@ -6,7 +6,9 @@ package semester_project;
 
 /**
  *
- * @author user
+ * @author Victor, Tai Ji Chen
+ * GROUP: 404 Bug Not Found
+ * CS4450 Spring 2026
  */
 
 import org.lwjgl.LWJGLException;
