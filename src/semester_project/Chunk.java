@@ -17,7 +17,6 @@ import org.newdawn.slick.util.ResourceLoader;
  * CS4450 Spring 2026
  *
  */
-
 public class Chunk {
     private int VBOTextureHandle;
     private int VBOVertexHandle;
@@ -332,22 +331,40 @@ public class Chunk {
 
         return new float[] {
             // TOP
-            topU2, topV,   topU, topV,   topU, topV2,   topU2, topV2,
+            topU2, topV,
+            topU,  topV,
+            topU,  topV2,
+            topU2, topV2,
 
             // BOTTOM
-            bottomU2, bottomV,   bottomU, bottomV,   bottomU, bottomV2,   bottomU2, bottomV2,
+            bottomU2, bottomV,
+            bottomU,  bottomV,
+            bottomU,  bottomV2,
+            bottomU2, bottomV2,
 
             // FRONT
-            sideU2, sideV,   sideU, sideV,   sideU, sideV2,   sideU2, sideV2,
+            sideU2, sideV,
+            sideU,  sideV,
+            sideU,  sideV2,
+            sideU2, sideV2,
 
             // BACK
-            sideU2, sideV,   sideU, sideV,   sideU, sideV2,   sideU2, sideV2,
+            sideU,  sideV,
+            sideU2, sideV,
+            sideU2, sideV2,
+            sideU,  sideV2,
 
             // LEFT
-            sideU2, sideV,   sideU, sideV,   sideU, sideV2,   sideU2, sideV2,
+            sideU,  sideV,
+            sideU2, sideV,
+            sideU2, sideV2,
+            sideU,  sideV2,
 
             // RIGHT
-            sideU2, sideV,   sideU, sideV,   sideU, sideV2,   sideU2, sideV2
+            sideU2, sideV,
+            sideU,  sideV,
+            sideU,  sideV2,
+            sideU2, sideV2
         };
     }
 }

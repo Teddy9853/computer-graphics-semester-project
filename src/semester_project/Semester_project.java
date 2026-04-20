@@ -23,8 +23,9 @@ public class Semester_project {
 
     private static FloatBuffer lightPosition;
     private static FloatBuffer whiteLight;
-    private static FloatBuffer dimLight;
-    private static FloatBuffer noAmbient;
+    private static FloatBuffer globalAmbient;
+    private static FloatBuffer lightAmbient;
+
     public static void main(String[] args) throws LWJGLException {
         Display.setDisplayMode(new DisplayMode(640, 480));
         Display.setTitle("CS4450 Final Project");
@@ -49,28 +50,16 @@ public class Semester_project {
             camera.yaw(Mouse.getDX() * 0.1f);
             camera.pitch(Mouse.getDY() * 0.1f);
 
-            if (Keyboard.isKeyDown(Keyboard.KEY_W)) {
-                camera.walkForward(0.3f);
-            }
-            if (Keyboard.isKeyDown(Keyboard.KEY_S)) {
-                camera.walkBackwards(0.3f);
-            }
-            if (Keyboard.isKeyDown(Keyboard.KEY_A)) {
-                camera.strafeLeft(0.3f);
-            }
-            if (Keyboard.isKeyDown(Keyboard.KEY_D)) {
-                camera.strafeRight(0.3f);
-            }
-            if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
-                camera.moveUp(0.3f);
-            }
-            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
-                camera.moveDown(0.3f);
-            }
+            if (Keyboard.isKeyDown(Keyboard.KEY_W)) camera.walkForward(0.3f);
+            if (Keyboard.isKeyDown(Keyboard.KEY_S)) camera.walkBackwards(0.3f);
+            if (Keyboard.isKeyDown(Keyboard.KEY_A)) camera.strafeLeft(0.3f);
+            if (Keyboard.isKeyDown(Keyboard.KEY_D)) camera.strafeRight(0.3f);
+            if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) camera.moveUp(0.3f);
+            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) camera.moveDown(0.3f);
 
             camera.lookThrough();
 
-            // Light position must be set after the camera transform
+            // set light after camera transform
             glLight(GL_LIGHT0, GL_POSITION, lightPosition);
 
             chunk.render();
@@ -100,21 +89,21 @@ public class Semester_project {
         glShadeModel(GL_SMOOTH);
         glEnable(GL_NORMALIZE);
 
-        // Make texture color combine with lighting
+        // textures must combine with lighting
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-        // Small global ambient so dark side is still visible
-        glLightModel(GL_LIGHT_MODEL_AMBIENT, dimLight);
+        // make dark side visible
+        glLightModel(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
 
         glLight(GL_LIGHT0, GL_POSITION, lightPosition);
         glLight(GL_LIGHT0, GL_DIFFUSE, whiteLight);
         glLight(GL_LIGHT0, GL_SPECULAR, whiteLight);
-        glLight(GL_LIGHT0, GL_AMBIENT, noAmbient);
+        glLight(GL_LIGHT0, GL_AMBIENT, lightAmbient);
 
-        // Stronger falloff so one side looks brighter than the other
+        // much weaker attenuation
         glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0f);
-        glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.02f);
-        glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.001f);
+        glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.002f);
+        glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.00002f);
 
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
@@ -126,17 +115,19 @@ public class Semester_project {
     }
 
     private static void initLightArrays() {
-        // Point light placed far to the left and above the world
+        // place light much closer to the chunk
         lightPosition = BufferUtils.createFloatBuffer(4);
-        lightPosition.put(-120.0f).put(80.0f).put(-20.0f).put(1.0f).flip();
+        lightPosition.put(-20.0f).put(35.0f).put(-35.0f).put(1.0f).flip();
 
         whiteLight = BufferUtils.createFloatBuffer(4);
         whiteLight.put(1.0f).put(1.0f).put(1.0f).put(1.0f).flip();
 
-        dimLight = BufferUtils.createFloatBuffer(4);
-        dimLight.put(0.03f).put(0.03f).put(0.03f).put(1.0f).flip();
+        // small world ambient so unlit side is dim, not black
+        globalAmbient = BufferUtils.createFloatBuffer(4);
+        globalAmbient.put(0.35f).put(0.35f).put(0.35f).put(1.0f).flip();
 
-        noAmbient = BufferUtils.createFloatBuffer(4);
-        noAmbient.put(0.0f).put(0.0f).put(0.0f).put(1.0f).flip();
+        // slight ambient from the light itself
+        lightAmbient = BufferUtils.createFloatBuffer(4);
+        lightAmbient.put(0.15f).put(0.15f).put(0.15f).put(1.0f).flip();
     }
 }
