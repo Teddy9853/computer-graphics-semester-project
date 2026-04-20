@@ -1,3 +1,4 @@
+
 package semester_project;
 
 import java.nio.FloatBuffer;
@@ -10,17 +11,12 @@ import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
 import org.newdawn.slick.util.ResourceLoader;
 
-/**
- *
- * @author Victor, Tai Ji Chen
- * GROUP: 404 Bug Not Found
- * CS4450 Spring 2026
- *
- */
 public class Chunk {
+
     private int VBOTextureHandle;
     private int VBOVertexHandle;
     private int VBONormalHandle;
+
     private Texture texture;
 
     static final int CHUNK_SIZE = 30;
@@ -36,9 +32,7 @@ public class Chunk {
         try {
             texture = TextureLoader.getTexture("PNG",
                     ResourceLoader.getResourceAsStream("terrain.png"));
-            System.out.println("terrain.png loaded successfully");
         } catch (Exception e) {
-            System.out.println("Could not load terrain.png");
             e.printStackTrace();
         }
 
@@ -56,9 +50,7 @@ public class Chunk {
         int seed = new Random().nextInt();
         NoiseGenerate noise = new NoiseGenerate(32, 0.5, seed);
 
-        int minHeight = 2;
-        int maxHeight = 12;
-        int[][] heights = noise.generateChunkHeights(0, 0, minHeight, maxHeight);
+        int[][] heights = noise.generateChunkHeights(0, 0, 2, 12);
 
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
@@ -79,11 +71,9 @@ public class Chunk {
                     if (y == 0) {
                         block = new Block(Block.BlockType.BlockType_Bedrock);
                     } else if (y == height) {
-                        if (height <= WATER_LEVEL) {
-                            block = new Block(Block.BlockType.BlockType_Sand);
-                        } else {
-                            block = new Block(Block.BlockType.BlockType_Grass);
-                        }
+                        block = (height <= WATER_LEVEL)
+                                ? new Block(Block.BlockType.BlockType_Sand)
+                                : new Block(Block.BlockType.BlockType_Grass);
                     } else if (y >= height - 2) {
                         block = new Block(Block.BlockType.BlockType_Dirt);
                     } else {
@@ -105,8 +95,6 @@ public class Chunk {
 
     public void render() {
         glPushMatrix();
-
-        glEnable(GL_TEXTURE_2D);
 
         if (texture != null) {
             texture.bind();
@@ -188,44 +176,44 @@ public class Chunk {
     }
 
     public static float[] createCube(float x, float y, float z) {
-        int offset = CUBE_LENGTH / 2;
+        int o = CUBE_LENGTH / 2;
 
         return new float[] {
             // TOP
-            x + offset, y + offset, z,
-            x - offset, y + offset, z,
-            x - offset, y + offset, z - CUBE_LENGTH,
-            x + offset, y + offset, z - CUBE_LENGTH,
+            x + o, y + o, z,
+            x - o, y + o, z,
+            x - o, y + o, z - CUBE_LENGTH,
+            x + o, y + o, z - CUBE_LENGTH,
 
             // BOTTOM
-            x + offset, y - offset, z - CUBE_LENGTH,
-            x - offset, y - offset, z - CUBE_LENGTH,
-            x - offset, y - offset, z,
-            x + offset, y - offset, z,
+            x + o, y - o, z - CUBE_LENGTH,
+            x - o, y - o, z - CUBE_LENGTH,
+            x - o, y - o, z,
+            x + o, y - o, z,
 
             // FRONT
-            x + offset, y + offset, z - CUBE_LENGTH,
-            x - offset, y + offset, z - CUBE_LENGTH,
-            x - offset, y - offset, z - CUBE_LENGTH,
-            x + offset, y - offset, z - CUBE_LENGTH,
+            x + o, y + o, z - CUBE_LENGTH,
+            x - o, y + o, z - CUBE_LENGTH,
+            x - o, y - o, z - CUBE_LENGTH,
+            x + o, y - o, z - CUBE_LENGTH,
 
             // BACK
-            x + offset, y - offset, z,
-            x - offset, y - offset, z,
-            x - offset, y + offset, z,
-            x + offset, y + offset, z,
+            x + o, y - o, z,
+            x - o, y - o, z,
+            x - o, y + o, z,
+            x + o, y + o, z,
 
             // LEFT
-            x - offset, y + offset, z - CUBE_LENGTH,
-            x - offset, y + offset, z,
-            x - offset, y - offset, z,
-            x - offset, y - offset, z - CUBE_LENGTH,
+            x - o, y + o, z - CUBE_LENGTH,
+            x - o, y + o, z,
+            x - o, y - o, z,
+            x - o, y - o, z - CUBE_LENGTH,
 
             // RIGHT
-            x + offset, y + offset, z,
-            x + offset, y + offset, z - CUBE_LENGTH,
-            x + offset, y - offset, z - CUBE_LENGTH,
-            x + offset, y - offset, z
+            x + o, y + o, z,
+            x + o, y + o, z - CUBE_LENGTH,
+            x + o, y - o, z - CUBE_LENGTH,
+            x + o, y - o, z
         };
     }
 
@@ -270,64 +258,64 @@ public class Chunk {
     }
 
     private float[] createCubeTexCoords(Block block) {
-        float tileSize = 1.0f / 16.0f;
+        float ts = 1.0f / 16.0f;
 
-        int topCol = 0, topRow = 0;
-        int bottomCol = 0, bottomRow = 0;
-        int sideCol = 0, sideRow = 0;
+        int tc = 0, tr = 0;
+        int bc = 0, br = 0;
+        int sc = 0, sr = 0;
 
         switch (block.GetID()) {
-            case 0: // Grass
-                topCol = 0;    topRow = 0;
-                bottomCol = 2; bottomRow = 0;
-                sideCol = 3;   sideRow = 0;
+            case 0: // Grass: top = green cotton
+                tc = 2; tr = 9;
+                bc = 2; br = 0;
+                sc = 3; sr = 0;
                 break;
 
             case 1: // Sand
-                topCol = bottomCol = sideCol = 1;
-                topRow = bottomRow = sideRow = 1;
+                tc = bc = sc = 1;
+                tr = br = sr = 1;
                 break;
 
             case 2: // Water
-                topCol = bottomCol = sideCol = 13;
-                topRow = bottomRow = sideRow = 12;
+                tc = bc = sc = 13;
+                tr = br = sr = 12;
                 break;
 
             case 3: // Dirt
-                topCol = bottomCol = sideCol = 2;
-                topRow = bottomRow = sideRow = 0;
+                tc = bc = sc = 2;
+                tr = br = sr = 0;
                 break;
 
             case 4: // Stone
-                topCol = bottomCol = sideCol = 1;
-                topRow = bottomRow = sideRow = 0;
+                tc = bc = sc = 1;
+                tr = br = sr = 0;
                 break;
 
             case 5: // Bedrock
-                topCol = bottomCol = sideCol = 1;
-                topRow = bottomRow = sideRow = 1;
+                tc = bc = sc = 1;
+                tr = br = sr = 1;
                 break;
 
             default:
-                topCol = bottomCol = sideCol = 0;
-                topRow = bottomRow = sideRow = 0;
+                tc = bc = sc = 0;
+                tr = br = sr = 0;
                 break;
         }
 
-        float topU = topCol * tileSize;
-        float topV = topRow * tileSize;
-        float topU2 = topU + tileSize;
-        float topV2 = topV + tileSize;
+        float topU = tc * ts;
+        float topV = tr * ts;
+        float topU2 = topU + ts;
+        float topV2 = topV + ts;
 
-        float bottomU = bottomCol * tileSize;
-        float bottomV = bottomRow * tileSize;
-        float bottomU2 = bottomU + tileSize;
-        float bottomV2 = bottomV + tileSize;
+        float bottomU = bc * ts;
+        float bottomV = br * ts;
+        float bottomU2 = bottomU + ts;
+        float bottomV2 = bottomV + ts;
 
-        float sideU = sideCol * tileSize;
-        float sideV = sideRow * tileSize;
-        float sideU2 = sideU + tileSize;
-        float sideV2 = sideV + tileSize;
+        float sideU = sc * ts;
+        float sideV = sr * ts;
+        float sideU2 = sideU + ts;
+        float sideV2 = sideV + ts;
 
         return new float[] {
             // TOP
@@ -349,16 +337,16 @@ public class Chunk {
             sideU2, sideV2,
 
             // BACK
-            sideU,  sideV,
-            sideU2, sideV,
             sideU2, sideV2,
             sideU,  sideV2,
+            sideU,  sideV,
+            sideU2, sideV,
 
             // LEFT
-            sideU,  sideV,
             sideU2, sideV,
-            sideU2, sideV2,
+            sideU,  sideV,
             sideU,  sideV2,
+            sideU2, sideV2,
 
             // RIGHT
             sideU2, sideV,
