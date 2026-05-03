@@ -10,6 +10,7 @@ import org.lwjgl.BufferUtils;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.nio.FloatBuffer;
+import java.util.Random;
 
 public class Semester_project {
 
@@ -19,6 +20,14 @@ public class Semester_project {
     private static FloatBuffer lightAmbient;
 
     private static float lightAngle = 0.0f;
+
+    private static Random random = new Random();
+
+    private static float slimeX;
+    private static float slimeZ;
+    private static float slimeTargetX;
+    private static float slimeTargetZ;
+    private static boolean slimeInitialized = false;
 
     public static void main(String[] args) throws LWJGLException {
         Display.setDisplayMode(new DisplayMode(640, 480));
@@ -70,16 +79,10 @@ public class Semester_project {
             // ---- Draw terrain ----
             chunk.render();
 
-            // ---- Slime (inside terrain) ----
-            float slimeX = 20.0f;
-            float slimeZ = -20.0f;
+            // ---- Random moving slime ----
+            updateAndDrawSlime(chunk);
 
-            float surfaceY = chunk.getSurfaceY((int) slimeX, (int) slimeZ);
-            float jumpHeight = Math.abs((float) Math.sin(lightAngle * 3.0f)) * 2.0f;
-
-            drawSlimeCube(slimeX, surfaceY + jumpHeight, slimeZ);
-
-            // ---- Sun cube ----
+            // ---- Yellow sun cube ----
             drawLightCube(lightX, lightY, lightZ);
 
             Display.update();
@@ -87,6 +90,37 @@ public class Semester_project {
         }
 
         Display.destroy();
+    }
+
+    private static void updateAndDrawSlime(Chunk chunk) {
+        if (!slimeInitialized) {
+            slimeX = 5.0f + random.nextFloat() * 50.0f;
+            slimeZ = -15.0f + random.nextFloat() * 50.0f;
+            randomizeSlimeTarget();
+            slimeInitialized = true;
+        }
+
+        float dx = slimeTargetX - slimeX;
+        float dz = slimeTargetZ - slimeZ;
+        float distance = (float) Math.sqrt(dx * dx + dz * dz);
+
+        if (distance < 1.0f) {
+            randomizeSlimeTarget();
+        } else {
+            float speed = 0.03f;
+            slimeX += (dx / distance) * speed;
+            slimeZ += (dz / distance) * speed;
+        }
+
+        float surfaceY = chunk.getSurfaceY((int) slimeX, (int) slimeZ);
+        float jumpHeight = Math.abs((float) Math.sin(lightAngle * 3.0f)) * 2.0f;
+
+        drawSlimeCube(slimeX, surfaceY + jumpHeight, slimeZ);
+    }
+
+    private static void randomizeSlimeTarget() {
+        slimeTargetX = 5.0f + random.nextFloat() * 50.0f;
+        slimeTargetZ = -15.0f + random.nextFloat() * 50.0f;
     }
 
     private static void initGL() {
@@ -149,7 +183,7 @@ public class Semester_project {
     }
 
     private static void drawSlimeCube(float x, float y, float z) {
-        float size = 1.0f; // ✅ CHANGED TO 1x1x1
+        float size = 1.0f;
         float s = size / 2.0f;
 
         glPushMatrix();
@@ -177,25 +211,58 @@ public class Semester_project {
                                                 boolean disableLighting) {
         float s = size / 2.0f;
 
-        if (disableLighting) glDisable(GL_LIGHTING);
+        if (disableLighting) {
+            glDisable(GL_LIGHTING);
+        }
 
         glDisable(GL_TEXTURE_2D);
         glColor3f(r, g, b);
 
         glBegin(GL_QUADS);
 
-        glVertex3f( s,  s, -s); glVertex3f(-s,  s, -s); glVertex3f(-s,  s,  s); glVertex3f( s,  s,  s);
-        glVertex3f( s, -s,  s); glVertex3f(-s, -s,  s); glVertex3f(-s, -s, -s); glVertex3f( s, -s, -s);
-        glVertex3f( s,  s,  s); glVertex3f(-s,  s,  s); glVertex3f(-s, -s,  s); glVertex3f( s, -s,  s);
-        glVertex3f( s, -s, -s); glVertex3f(-s, -s, -s); glVertex3f(-s,  s, -s); glVertex3f( s,  s, -s);
-        glVertex3f(-s,  s,  s); glVertex3f(-s,  s, -s); glVertex3f(-s, -s, -s); glVertex3f(-s, -s,  s);
-        glVertex3f( s,  s, -s); glVertex3f( s,  s,  s); glVertex3f( s, -s,  s); glVertex3f( s, -s, -s);
+        // TOP
+        glVertex3f( s,  s, -s);
+        glVertex3f(-s,  s, -s);
+        glVertex3f(-s,  s,  s);
+        glVertex3f( s,  s,  s);
+
+        // BOTTOM
+        glVertex3f( s, -s,  s);
+        glVertex3f(-s, -s,  s);
+        glVertex3f(-s, -s, -s);
+        glVertex3f( s, -s, -s);
+
+        // FRONT
+        glVertex3f( s,  s,  s);
+        glVertex3f(-s,  s,  s);
+        glVertex3f(-s, -s,  s);
+        glVertex3f( s, -s,  s);
+
+        // BACK
+        glVertex3f( s, -s, -s);
+        glVertex3f(-s, -s, -s);
+        glVertex3f(-s,  s, -s);
+        glVertex3f( s,  s, -s);
+
+        // LEFT
+        glVertex3f(-s,  s,  s);
+        glVertex3f(-s,  s, -s);
+        glVertex3f(-s, -s, -s);
+        glVertex3f(-s, -s,  s);
+
+        // RIGHT
+        glVertex3f( s,  s, -s);
+        glVertex3f( s,  s,  s);
+        glVertex3f( s, -s,  s);
+        glVertex3f( s, -s, -s);
 
         glEnd();
 
         glColor3f(1.0f, 1.0f, 1.0f);
         glEnable(GL_TEXTURE_2D);
 
-        if (disableLighting) glEnable(GL_LIGHTING);
+        if (disableLighting) {
+            glEnable(GL_LIGHTING);
+        }
     }
 }
