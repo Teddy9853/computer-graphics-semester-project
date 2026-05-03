@@ -53,13 +53,16 @@ public class Semester_project {
 
             camera.lookThrough();
 
-            // --- Orbiting light ---
+            // Orbiting light with Y movement
             lightAngle += 0.01f;
 
-            float radius = 40.0f;
+            float radius = 80.0f;
+
             float x = (float) (radius * Math.cos(lightAngle));
-            float y = 35.0f;
             float z = (float) (radius * Math.sin(lightAngle));
+
+            // Moves up and down while orbiting
+            float y = 0f + (float) (80.0f * Math.sin(lightAngle * 0.5f));
 
             lightPosition.clear();
             lightPosition.put(x).put(y).put(z).put(1.0f);
@@ -67,10 +70,10 @@ public class Semester_project {
 
             glLight(GL_LIGHT0, GL_POSITION, lightPosition);
 
-            // --- Draw world FIRST ---
+            // Draw world first
             chunk.render();
 
-            // --- Draw light cube LAST (so it doesn’t affect world color) ---
+            // Draw yellow sun cube last
             drawLightCube(x, y, z);
 
             Display.update();
@@ -141,11 +144,10 @@ public class Semester_project {
         glPushMatrix();
         glTranslatef(x, y, z);
 
-        // Make it look like a glowing sun
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
 
-        glColor3f(1.0f, 1.0f, 0.0f); // yellow
+        glColor3f(1.0f, 1.0f, 0.0f);
 
         glBegin(GL_QUADS);
 
@@ -187,7 +189,6 @@ public class Semester_project {
 
         glEnd();
 
-        // IMPORTANT: reset state so world is NOT tinted
         glColor3f(1.0f, 1.0f, 1.0f);
 
         glEnable(GL_TEXTURE_2D);
