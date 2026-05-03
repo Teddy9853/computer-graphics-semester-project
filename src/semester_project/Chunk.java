@@ -368,4 +368,20 @@ public class Chunk {
             sideU2, sideV2
         };
     }
+    public float getSurfaceY(int worldX, int worldZ) {
+    int localX = (worldX - StartX) / CUBE_LENGTH;
+    int localZ = (worldZ - StartZ) / CUBE_LENGTH;
+
+    if (localX < 0 || localX >= CHUNK_SIZE || localZ < 0 || localZ >= CHUNK_SIZE) {
+        return StartY;
+    }
+
+    for (int y = CHUNK_SIZE - 1; y >= 0; y--) {
+        if (Blocks[localX][y][localZ] != null && Blocks[localX][y][localZ].isActive()) {
+            return StartY + y * CUBE_LENGTH + CUBE_LENGTH;
+        }
+    }
+
+    return StartY;
+    }
 }

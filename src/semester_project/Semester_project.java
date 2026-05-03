@@ -53,28 +53,34 @@ public class Semester_project {
 
             camera.lookThrough();
 
-            // Orbiting light with Y movement
+            // ---- Orbiting light ----
             lightAngle += 0.01f;
 
-            float radius = 80.0f;
-
-            float x = (float) (radius * Math.cos(lightAngle));
-            float z = (float) (radius * Math.sin(lightAngle));
-
-            // Moves up and down while orbiting
-            float y = 0f + (float) (80.0f * Math.sin(lightAngle * 0.5f));
+            float radius = 40.0f;
+            float lightX = (float) (radius * Math.cos(lightAngle));
+            float lightZ = (float) (radius * Math.sin(lightAngle));
+            float lightY = 35.0f + (float) (10.0f * Math.sin(lightAngle * 0.5f));
 
             lightPosition.clear();
-            lightPosition.put(x).put(y).put(z).put(1.0f);
+            lightPosition.put(lightX).put(lightY).put(lightZ).put(1.0f);
             lightPosition.flip();
 
             glLight(GL_LIGHT0, GL_POSITION, lightPosition);
 
-            // Draw world first
+            // ---- Draw terrain ----
             chunk.render();
 
-            // Draw yellow sun cube last
-            drawLightCube(x, y, z);
+            // ---- Slime (inside terrain) ----
+            float slimeX = 20.0f;
+            float slimeZ = -20.0f;
+
+            float surfaceY = chunk.getSurfaceY((int) slimeX, (int) slimeZ);
+            float jumpHeight = Math.abs((float) Math.sin(lightAngle * 3.0f)) * 2.0f;
+
+            drawSlimeCube(slimeX, surfaceY + jumpHeight, slimeZ);
+
+            // ---- Sun cube ----
+            drawLightCube(lightX, lightY, lightZ);
 
             Display.update();
             Display.sync(60);
@@ -139,61 +145,57 @@ public class Semester_project {
 
     private static void drawLightCube(float x, float y, float z) {
         float size = 6.0f;
+        drawColoredCube(x, y, z, size, 1.0f, 1.0f, 0.0f, true);
+    }
+
+    private static void drawSlimeCube(float x, float y, float z) {
+        float size = 1.0f; // ✅ CHANGED TO 1x1x1
         float s = size / 2.0f;
 
         glPushMatrix();
+        glTranslatef(x, y + s, z);
+
+        drawColoredCubeAtOrigin(size, 1.0f, 0.0f, 0.0f, false);
+
+        glPopMatrix();
+    }
+
+    private static void drawColoredCube(float x, float y, float z,
+                                        float size,
+                                        float r, float g, float b,
+                                        boolean disableLighting) {
+        glPushMatrix();
         glTranslatef(x, y, z);
 
-        glDisable(GL_LIGHTING);
-        glDisable(GL_TEXTURE_2D);
+        drawColoredCubeAtOrigin(size, r, g, b, disableLighting);
 
-        glColor3f(1.0f, 1.0f, 0.0f);
+        glPopMatrix();
+    }
+
+    private static void drawColoredCubeAtOrigin(float size,
+                                                float r, float g, float b,
+                                                boolean disableLighting) {
+        float s = size / 2.0f;
+
+        if (disableLighting) glDisable(GL_LIGHTING);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor3f(r, g, b);
 
         glBegin(GL_QUADS);
 
-        // TOP
-        glVertex3f( s,  s, -s);
-        glVertex3f(-s,  s, -s);
-        glVertex3f(-s,  s,  s);
-        glVertex3f( s,  s,  s);
-
-        // BOTTOM
-        glVertex3f( s, -s,  s);
-        glVertex3f(-s, -s,  s);
-        glVertex3f(-s, -s, -s);
-        glVertex3f( s, -s, -s);
-
-        // FRONT
-        glVertex3f( s,  s,  s);
-        glVertex3f(-s,  s,  s);
-        glVertex3f(-s, -s,  s);
-        glVertex3f( s, -s,  s);
-
-        // BACK
-        glVertex3f( s, -s, -s);
-        glVertex3f(-s, -s, -s);
-        glVertex3f(-s,  s, -s);
-        glVertex3f( s,  s, -s);
-
-        // LEFT
-        glVertex3f(-s,  s,  s);
-        glVertex3f(-s,  s, -s);
-        glVertex3f(-s, -s, -s);
-        glVertex3f(-s, -s,  s);
-
-        // RIGHT
-        glVertex3f( s,  s, -s);
-        glVertex3f( s,  s,  s);
-        glVertex3f( s, -s,  s);
-        glVertex3f( s, -s, -s);
+        glVertex3f( s,  s, -s); glVertex3f(-s,  s, -s); glVertex3f(-s,  s,  s); glVertex3f( s,  s,  s);
+        glVertex3f( s, -s,  s); glVertex3f(-s, -s,  s); glVertex3f(-s, -s, -s); glVertex3f( s, -s, -s);
+        glVertex3f( s,  s,  s); glVertex3f(-s,  s,  s); glVertex3f(-s, -s,  s); glVertex3f( s, -s,  s);
+        glVertex3f( s, -s, -s); glVertex3f(-s, -s, -s); glVertex3f(-s,  s, -s); glVertex3f( s,  s, -s);
+        glVertex3f(-s,  s,  s); glVertex3f(-s,  s, -s); glVertex3f(-s, -s, -s); glVertex3f(-s, -s,  s);
+        glVertex3f( s,  s, -s); glVertex3f( s,  s,  s); glVertex3f( s, -s,  s); glVertex3f( s, -s, -s);
 
         glEnd();
 
         glColor3f(1.0f, 1.0f, 1.0f);
-
         glEnable(GL_TEXTURE_2D);
-        glEnable(GL_LIGHTING);
 
-        glPopMatrix();
+        if (disableLighting) glEnable(GL_LIGHTING);
     }
 }
