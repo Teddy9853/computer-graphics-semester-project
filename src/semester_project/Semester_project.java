@@ -1,24 +1,14 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
- */
 package semester_project;
-
-/**
- *
- * @author Victor, Tai Ji Chen
- * GROUP: 404 Bug Not Found
- * CS4450 Spring 2026
- */
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.BufferUtils;
+
 import static org.lwjgl.opengl.GL11.*;
+
 import java.nio.FloatBuffer;
 
 public class Semester_project {
@@ -27,6 +17,8 @@ public class Semester_project {
     private static FloatBuffer whiteLight;
     private static FloatBuffer globalAmbient;
     private static FloatBuffer lightAmbient;
+
+    private static float lightAngle = 0.0f;
 
     public static void main(String[] args) throws LWJGLException {
         Display.setDisplayMode(new DisplayMode(640, 480));
@@ -61,10 +53,25 @@ public class Semester_project {
 
             camera.lookThrough();
 
-            // set light after camera transform
+            // --- Orbiting light ---
+            lightAngle += 0.01f;
+
+            float radius = 40.0f;
+            float x = (float) (radius * Math.cos(lightAngle));
+            float y = 35.0f;
+            float z = (float) (radius * Math.sin(lightAngle));
+
+            lightPosition.clear();
+            lightPosition.put(x).put(y).put(z).put(1.0f);
+            lightPosition.flip();
+
             glLight(GL_LIGHT0, GL_POSITION, lightPosition);
 
+            // --- Draw world FIRST ---
             chunk.render();
+
+            // --- Draw light cube LAST (so it doesn’t affect world color) ---
+            drawLightCube(x, y, z);
 
             Display.update();
             Display.sync(60);
@@ -91,10 +98,8 @@ public class Semester_project {
         glShadeModel(GL_SMOOTH);
         glEnable(GL_NORMALIZE);
 
-        // textures must combine with lighting
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-        // make dark side visible
         glLightModel(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
 
         glLight(GL_LIGHT0, GL_POSITION, lightPosition);
@@ -102,7 +107,6 @@ public class Semester_project {
         glLight(GL_LIGHT0, GL_SPECULAR, whiteLight);
         glLight(GL_LIGHT0, GL_AMBIENT, lightAmbient);
 
-        // much weaker attenuation
         glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0f);
         glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.002f);
         glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.00002f);
@@ -117,19 +121,78 @@ public class Semester_project {
     }
 
     private static void initLightArrays() {
-        // place light much closer to the chunk
         lightPosition = BufferUtils.createFloatBuffer(4);
-        lightPosition.put(-20.0f).put(35.0f).put(-35.0f).put(1.0f).flip();
+        lightPosition.put(40.0f).put(35.0f).put(0.0f).put(1.0f).flip();
 
         whiteLight = BufferUtils.createFloatBuffer(4);
         whiteLight.put(1.0f).put(1.0f).put(1.0f).put(1.0f).flip();
 
-        // small world ambient so unlit side is dim, not black
         globalAmbient = BufferUtils.createFloatBuffer(4);
         globalAmbient.put(0.35f).put(0.35f).put(0.35f).put(1.0f).flip();
 
-        // slight ambient from the light itself
         lightAmbient = BufferUtils.createFloatBuffer(4);
         lightAmbient.put(0.15f).put(0.15f).put(0.15f).put(1.0f).flip();
+    }
+
+    private static void drawLightCube(float x, float y, float z) {
+        float size = 6.0f;
+        float s = size / 2.0f;
+
+        glPushMatrix();
+        glTranslatef(x, y, z);
+
+        // Make it look like a glowing sun
+        glDisable(GL_LIGHTING);
+        glDisable(GL_TEXTURE_2D);
+
+        glColor3f(1.0f, 1.0f, 0.0f); // yellow
+
+        glBegin(GL_QUADS);
+
+        // TOP
+        glVertex3f( s,  s, -s);
+        glVertex3f(-s,  s, -s);
+        glVertex3f(-s,  s,  s);
+        glVertex3f( s,  s,  s);
+
+        // BOTTOM
+        glVertex3f( s, -s,  s);
+        glVertex3f(-s, -s,  s);
+        glVertex3f(-s, -s, -s);
+        glVertex3f( s, -s, -s);
+
+        // FRONT
+        glVertex3f( s,  s,  s);
+        glVertex3f(-s,  s,  s);
+        glVertex3f(-s, -s,  s);
+        glVertex3f( s, -s,  s);
+
+        // BACK
+        glVertex3f( s, -s, -s);
+        glVertex3f(-s, -s, -s);
+        glVertex3f(-s,  s, -s);
+        glVertex3f( s,  s, -s);
+
+        // LEFT
+        glVertex3f(-s,  s,  s);
+        glVertex3f(-s,  s, -s);
+        glVertex3f(-s, -s, -s);
+        glVertex3f(-s, -s,  s);
+
+        // RIGHT
+        glVertex3f( s,  s, -s);
+        glVertex3f( s,  s,  s);
+        glVertex3f( s, -s,  s);
+        glVertex3f( s, -s, -s);
+
+        glEnd();
+
+        // IMPORTANT: reset state so world is NOT tinted
+        glColor3f(1.0f, 1.0f, 1.0f);
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_LIGHTING);
+
+        glPopMatrix();
     }
 }
